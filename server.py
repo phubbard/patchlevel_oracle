@@ -17,17 +17,22 @@ from twisted.web.server import Site
 from twisted.internet import reactor
 
 CONFIG_FILENAME = 'config.ini'
+TCP_PORT = 2210
 
 class PLR(resource.Resource):
+    """
+    Class to represent a package, which is saved as a section in the config file.
+    """
     def __init__(self, package_name, git_hash=None):
             resource.Resource.__init__(self)
             self.package_name = package_name
             self.git_hash = git_hash
 
-    def get_info(self, package_name, want_string=False):
+    def get_info(self, package_name):
         """
         For a package name, return last version and git hash, if any.
-        Returns an (int, string) or string, zero-length if not found.
+        Returns an (int, string, string).
+        If a new package, patchlevel is zero.
         """
         try:
             c = config()
@@ -48,13 +53,9 @@ class PLR(resource.Resource):
         except:
             tstamp_str = None
 
+        return patchlevel, git_hash, tstamp_str
 
-        if want_string:
-            return('%d %s %s' % (patchlevel, git_hash, tstamp_str))
-        else:
-            return patchlevel, git_hash, tstamp_str
-
-    def write_info(self, package_name, patchlevel, git_hash=None):
+    def write_info(self, package_name, patchlevel, git_hash='None'):
         try:
             c = config()
             c.read(CONFIG_FILENAME)
@@ -63,9 +64,7 @@ class PLR(resource.Resource):
                 c.add_section(package_name)
 
             c.set(package_name, 'patchlevel', str(patchlevel))
-            if git_hash:
-                c.set(package_name, 'git_hash', git_hash)
-
+            c.set(package_name, 'git_hash', str(git_hash))
             # last-update timestamp
             tstamp = str(datetime.now())
             c.set(package_name, 'last_update', tstamp)
@@ -73,7 +72,7 @@ class PLR(resource.Resource):
             with open(CONFIG_FILENAME, 'w') as configfile:
                 c.write(configfile)
 
-            log.info('Config file written OK')
+            log.info('Wrote %s %d %s %s' % (package_name, patchlevel, git_hash, tstamp))
         except:
             log.exception('Error writing config file!')
 
@@ -82,11 +81,12 @@ class PLR(resource.Resource):
             log.debug('Ignoring favicon request')
             return ''
 
+        # We don't need a root page, but it is much more friendly with one.
         if self.package_name == '':
-            log.info('Root page requested, enumerating sections')
+            log.debug('Root page requested')
             header = '<html><head><title>Patchlevel Oracle</title></head><body><h3>Packages listed in "%s"</h3>' % CONFIG_FILENAME
             body_prefix = '<p>Clicking a package returns and increments the version number<p>'
-            table_header = '<table border="0"><tr><th>Package</th><th>Patchlevel</th><th>Git commit hash</th><th>Last update</th></tr>'
+            table_header = '<table border="1"><tr><th>Package</th><th>Patchlevel</th><th>Git commit hash</th><th>Last update</th></tr>'
             table_footer = '</table>'
             footer = '</nl></body></html'
 
@@ -112,7 +112,7 @@ class PLR(resource.Resource):
             return ''
 
         """
-        Normal case, have requested a package via REST URL
+        This is actually the normal case, have requested a package via REST URL
          e.g. 'GET /nimboss?git_hash=7abcdefg'
         git_hash is optional
         """
@@ -124,6 +124,10 @@ class PLR(resource.Resource):
         return(str(patchlevel))
 
 class PLRootPage(resource.Resource):
+    """
+    If a child is requested, generate it on the fly (will create a new package record)
+    Also pass in git_hash if it's in the HTTP request.
+    """
     def getChild(self, package_name, request):
         try:
             ghash = request.args.get('git_hash')[0]
@@ -141,8 +145,8 @@ def main():
 
     root = PLRootPage()
     factory = Site(root)
-    reactor.listenTCP(2210, factory)
-    log.info('http://localhost:2210/')
+    reactor.listenTCP(TCP_PORT, factory)
+    log.info('http://localhost:%d/' % TCP_PORT)
 
 if __name__ == '__main__':
     main()

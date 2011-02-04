@@ -10,3 +10,8 @@ Pip, setuptools and buildout. Git lacks the easy versioning of svn, so this code
 * Presents an index page that displays the above without changing them
 * Versions are simple post-increment, done when you pull the REST URL /package_name
 
+## Run it
+
+* Interactively: python setup.py
+* As a daemonized service: twistd -y deploy.tac
+* Foreground service: twistd -ny deploy.tac
