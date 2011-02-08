@@ -4,6 +4,10 @@
 @author Paul Hubbard
 @date 2/4/11
 @brief Patchlevel oracle, an http server that returns patchlevel numbers for packages.
+@author Roger Unwin
+@date 2/8/11
+@brief Modified to track historical versions, and have a human interface for their display.
+
 
 Algorithm: Post-increment, save in config file, with a stanza per package.
 """
@@ -17,7 +21,7 @@ from twisted.web.server import Site
 from twisted.internet import reactor
 
 CONFIG_FILENAME = 'config.ini'
-TCP_PORT = 2210
+TCP_PORT = 2222
 
 class PLR(resource.Resource):
     """
@@ -63,16 +67,22 @@ class PLR(resource.Resource):
             if not c.has_section(package_name):
                 c.add_section(package_name)
 
+            for x in range(10, 0, -1):
+                if c.has_option(package_name, 'last' + str(x)):
+                    c.set(package_name, 'last' + str(x +1), c.get(package_name, 'last' + str(x)))
+		
+            # last-update timestamp
+            self.tstamp = str(datetime.now())
+
+            c.set(package_name, 'last1', str(patchlevel) + ',' + str(git_hash) + ',' + str(self.tstamp))
             c.set(package_name, 'patchlevel', str(patchlevel))
             c.set(package_name, 'git_hash', str(git_hash))
-            # last-update timestamp
-            tstamp = str(datetime.now())
-            c.set(package_name, 'last_update', tstamp)
+            c.set(package_name, 'last_update', self.tstamp)
 
             with open(CONFIG_FILENAME, 'w') as configfile:
                 c.write(configfile)
 
-            log.info('Wrote %s %d %s %s' % (package_name, patchlevel, git_hash, tstamp))
+            log.info('Wrote %s %d %s %s' % (package_name, patchlevel, git_hash, self.tstamp))
         except:
             log.exception('Error writing config file!')
 
@@ -88,7 +98,7 @@ class PLR(resource.Resource):
             body_prefix = '<p>Clicking a package returns and increments the version number<p>'
             table_header = '<table border="1"><tr><th>Package</th><th>Patchlevel</th><th>Git commit hash</th><th>Last update</th></tr>'
             table_footer = '</table>'
-            footer = '</nl></body></html'
+            footer = '</nl></body></html>'
 
             request.write(header)
             request.write(body_prefix)
@@ -111,17 +121,73 @@ class PLR(resource.Resource):
 
             return ''
 
+
+        # if a git_hash is present, then we bump the count, and return the count.
+        if self.git_hash != None:    
+          # We actually return the entry from the file
+          patchlevel, git_hash, timestamp = self.get_info(self.package_name)
+          # Write next entry
+          patchlevel += 1
+          self.write_info(self.package_name, patchlevel, self.git_hash)
+          return(str(patchlevel))
+
+
         """
         This is actually the normal case, have requested a package via REST URL
          e.g. 'GET /nimboss?git_hash=7abcdefg'
         git_hash is optional
         """
         # read previous entry
+        try:
+            c = config()
+            c.read(CONFIG_FILENAME)
+            patchlevel = c.getint(self.package_name, 'patchlevel')
+        except:
+            log.exception('Error getting info')
+            patchlevel = 0
+
         patchlevel, git_hash, timestamp = self.get_info(self.package_name)
         # Write next entry
-        self.write_info(self.package_name, patchlevel+1, self.git_hash)
         # We actually return the entry from the file
-        return(str(patchlevel))
+
+        try:
+            git_hash = c.get(self.package_name, 'git_hash')
+        except:
+            git_hash = ''
+
+        try:
+            tstamp_str = c.get(self.package_name, 'last_update')
+        except:
+            tstamp_str = None
+
+
+
+        header = '<html><head><title>Patchlevel Oracle</title></head><body><h3>Packages listed in "%s"</h3>' % CONFIG_FILENAME
+        body_prefix = '<p>Recent version history for ' + self.package_name + '<p>'
+        table_header = '<table border="1"><tr><th>Info</th><th>Patchlevel</th><th>Git commit hash</th><th>Last update</th></tr>'
+        table_footer = '</table>'
+        footer = '</nl></body></html>'
+        request.write(header)
+        request.write(body_prefix)
+        request.write(table_header)
+        request.write('<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>' %
+                      ('Current', str(patchlevel), git_hash, tstamp_str))
+
+        for x in range(2,10):
+            try:
+                s = c.get(self.package_name, 'last' + str(x))
+                items = s.split(',')
+                request.write('<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>' %
+                              ('Historical',  items[0], items[1], items[2]))
+            except:
+                """
+                """
+
+        request.write(table_footer)
+        request.write(footer)
+
+        return ''
+        
 
 class PLRootPage(resource.Resource):
     """
@@ -131,10 +197,12 @@ class PLRootPage(resource.Resource):
     def getChild(self, package_name, request):
         try:
             ghash = request.args.get('git_hash')[0]
+            self.ghash = ghash
             log.debug(ghash)
         except:
             log.debug('No git_hash in arguments')
             ghash = None
+            self.ghash = None
 
         log.debug('"%s"' % package_name)
         return PLR(package_name, git_hash=ghash)
