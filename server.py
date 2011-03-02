@@ -94,8 +94,8 @@ class PLR(resource.Resource):
         # We don't need a root page, but it is much more friendly with one.
         if self.package_name == '':
             log.debug('Root page requested')
-            header = '<html><head><title>Patchlevel Oracle</title></head><body><h3>Packages listed in "%s"</h3>' % CONFIG_FILENAME
-            body_prefix = '<p>Clicking a package returns and increments the version number<p>'
+            header = '<html><head><title>Patchlevel Oracle</title></head><body><h3>Packages</h3>'
+            body_prefix = '<p><p>'
             table_header = '<table border="1"><tr><th>Package</th><th>Download</th><th>Git commit hash</th><th>Last update</th></tr>'
             table_footer = '</table>'
             footer = '</nl></body></html>'
@@ -162,7 +162,7 @@ class PLR(resource.Resource):
 
 
 
-        header = '<html><head><title>Patchlevel Oracle</title></head><body><h3>Packages listed in "%s"</h3>' % CONFIG_FILENAME
+        header = '<html><head><title>Patchlevel Oracle</title></head><body><h3>Packages</h3>'
         body_prefix = '<p>Recent version history for ' + self.package_name + '<p>'
         table_header = '<table border="1"><tr><th>Info</th><th>Download</th><th>Git commit hash</th><th>Last update</th></tr>'
         table_footer = '</table>'
