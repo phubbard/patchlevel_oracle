@@ -67,7 +67,7 @@ class PLR(resource.Resource):
             if not c.has_section(package_name):
                 c.add_section(package_name)
 
-            for x in range(10, 0, -1):
+            for x in range(1000, 0, -1):
                 if c.has_option(package_name, 'last' + str(x)):
                     c.set(package_name, 'last' + str(x +1), c.get(package_name, 'last' + str(x)))
 		
@@ -96,7 +96,7 @@ class PLR(resource.Resource):
             log.debug('Root page requested')
             header = '<html><head><title>Patchlevel Oracle</title></head><body><h3>Packages listed in "%s"</h3>' % CONFIG_FILENAME
             body_prefix = '<p>Clicking a package returns and increments the version number<p>'
-            table_header = '<table border="1"><tr><th>Package</th><th>Patchlevel</th><th>Git commit hash</th><th>Last update</th></tr>'
+            table_header = '<table border="1"><tr><th>Package</th><th>Download</th><th>Git commit hash</th><th>Last update</th></tr>'
             table_footer = '</table>'
             footer = '</nl></body></html>'
 
@@ -111,8 +111,8 @@ class PLR(resource.Resource):
                 sections = c.sections()
                 for cur_package in sections:
                     pl, ghash, tstamp = self.get_info(cur_package)
-                    request.write('<tr><td><a href="%s">%s</td><td>%s</td><td>%s</td><td>%s</td></tr>' %
-                                  (cur_package, cur_package, str(pl), ghash, tstamp))
+                    request.write('<tr><td><a href="%s">%s</td><td><a href="http://ooici.net/releases/%s.tar.gz">%s</a></td><td> <A HREF="https://github.com/ooici/ion-object-definitions/commit/%s">%s</a></td><td>%s</td></tr>' %
+                                  (cur_package, cur_package, cur_package + '-pl' + str(pl), cur_package + '-pl' + str(pl),ghash, ghash, tstamp))
             except:
                 pass
 
@@ -164,21 +164,21 @@ class PLR(resource.Resource):
 
         header = '<html><head><title>Patchlevel Oracle</title></head><body><h3>Packages listed in "%s"</h3>' % CONFIG_FILENAME
         body_prefix = '<p>Recent version history for ' + self.package_name + '<p>'
-        table_header = '<table border="1"><tr><th>Info</th><th>Patchlevel</th><th>Git commit hash</th><th>Last update</th></tr>'
+        table_header = '<table border="1"><tr><th>Info</th><th>Download</th><th>Git commit hash</th><th>Last update</th></tr>'
         table_footer = '</table>'
         footer = '</nl></body></html>'
         request.write(header)
         request.write(body_prefix)
         request.write(table_header)
-        request.write('<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>' %
-                      ('Current', str(patchlevel), git_hash, tstamp_str))
+        request.write('<tr><td>%s</td><td><a href="http://ooici.net/releases/%s.tar.gz">%s</a></td><td><a href="https://github.com/ooici/ion-object-definitions/commit/%s">%s</a></td><td>%s</td></tr>' %
+                      ('Current', self.package_name + '-pl' + str(patchlevel), self.package_name + '-pl' + str(patchlevel), git_hash, git_hash, tstamp_str))
 
-        for x in range(2,10):
+        for x in range(2,1000):
             try:
                 s = c.get(self.package_name, 'last' + str(x))
                 items = s.split(',')
-                request.write('<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>' %
-                              ('Historical',  items[0], items[1], items[2]))
+                request.write('<tr><td>%s</td><td><a href="http://ooici.net/releases/%s.tar.gz">%s</a></td><td><a href="https://github.com/ooici/ion-object-definitions/commit/%s">%s</a></td><td>%s</td></tr>' %
+                              ('Historical',  self.package_name + '-pl' + items[0], self.package_name + '-pl' + items[0], items[1], items[1], items[2]))
             except:
                 """
                 """
