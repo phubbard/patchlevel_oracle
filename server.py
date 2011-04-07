@@ -45,7 +45,7 @@ class PLR(resource.Resource):
             log.debug('Read %d for %s' % (patchlevel, package_name))
         except:
             log.exception('Error getting info')
-            patchlevel = 0
+            patchlevel = -1
 
         try:
             git_hash = c.get(package_name, 'git_hash')
@@ -111,7 +111,11 @@ class PLR(resource.Resource):
                 sections = c.sections()
                 for cur_package in sections:
                     pl, ghash, tstamp = self.get_info(cur_package)
-                    request.write('<tr><td><a href="%s">%s</td><td><a href="http://ooici.net/releases/%s.tar.gz">%s</a></td><td> <A HREF="https://github.com/ooici/ion-object-definitions/commit/%s">%s</a></td><td>%s</td></tr>' %
+                    if pl == 0:
+                      request.write('<tr><td><a href="%s">%s</td><td><a href="http://ooici.net/releases/%s.tar.gz">%s</a></td><td> <A HREF="https://github.com/ooici/ion-object-definitions/commit/%s">%s</a></td><td>%s</td></tr>' %
+                                  (cur_package, cur_package, cur_package, cur_package,ghash, ghash, tstamp))
+                    else: 
+                      request.write('<tr><td><a href="%s">%s</td><td><a href="http://ooici.net/releases/%s.tar.gz">%s</a></td><td> <A HREF="https://github.com/ooici/ion-object-definitions/commit/%s">%s</a></td><td>%s</td></tr>' %
                                   (cur_package, cur_package, cur_package + '-pl' + str(pl), cur_package + '-pl' + str(pl),ghash, ghash, tstamp))
             except:
                 pass
@@ -144,7 +148,7 @@ class PLR(resource.Resource):
             patchlevel = c.getint(self.package_name, 'patchlevel')
         except:
             log.exception('Error getting info')
-            patchlevel = 0
+            patchlevel = -1
 
         patchlevel, git_hash, timestamp = self.get_info(self.package_name)
         # Write next entry
@@ -170,15 +174,23 @@ class PLR(resource.Resource):
         request.write(header)
         request.write(body_prefix)
         request.write(table_header)
-        request.write('<tr><td>%s</td><td><a href="http://ooici.net/releases/%s.tar.gz">%s</a></td><td><a href="https://github.com/ooici/ion-object-definitions/commit/%s">%s</a></td><td>%s</td></tr>' %
-                      ('Current', self.package_name + '-pl' + str(patchlevel), self.package_name + '-pl' + str(patchlevel), git_hash, git_hash, tstamp_str))
-
+        if patchlevel == 0:
+          request.write('<tr><td>%s</td><td><a href="http://ooici.net/releases/%s.tar.gz">%s</a></td><td><a href="https://github.com/ooici/ion-object-definitions/commit/%s">%s</a></td><td>%s</td></tr>' %
+                       ('Current', self.package_name, self.package_name, git_hash, git_hash, tstamp_str))
+        else:
+          request.write('<tr><td>%s</td><td><a href="http://ooici.net/releases/%s.tar.gz">%s</a></td><td><a href="https://github.com/ooici/ion-object-definitions/commit/%s">%s</a></td><td>%s</td></tr>' %
+                       ('Current', self.package_name + '-pl' + str(patchlevel), self.package_name + '-pl' + str(patchlevel), git_hash, git_hash, tstamp_str))
+       
         for x in range(2,1000):
             try:
                 s = c.get(self.package_name, 'last' + str(x))
                 items = s.split(',')
-                request.write('<tr><td>%s</td><td><a href="http://ooici.net/releases/%s.tar.gz">%s</a></td><td><a href="https://github.com/ooici/ion-object-definitions/commit/%s">%s</a></td><td>%s</td></tr>' %
-                              ('Historical',  self.package_name + '-pl' + items[0], self.package_name + '-pl' + items[0], items[1], items[1], items[2]))
+                if items[0] == '0':
+                  request.write('<tr><td>%s</td><td><a href="http://ooici.net/releases/%s.tar.gz">%s</a></td><td><a href="https://github.com/ooici/ion-object-definitions/commit/%s">%s</a></td><td>%s</td></tr>' %
+                               ('Historical',  self.package_name, self.package_name, items[1], items[1], items[2]))
+                else: 
+                  request.write('<tr><td>%s</td><td><a href="http://ooici.net/releases/%s.tar.gz">%s</a></td><td><a href="https://github.com/ooici/ion-object-definitions/commit/%s">%s</a></td><td>%s</td></tr>' %
+                               ('Historical',  self.package_name + '-pl' + items[0], self.package_name + '-pl' + items[0], items[1], items[1], items[2]))
             except:
                 """
                 """

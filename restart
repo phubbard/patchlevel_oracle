@@ -1,0 +1,6 @@
+#!/bin/sh
+
+
+kill -9 `cat twistd.pid`
+twistd -y deploy.tac
+ps -aux | grep `cat twistd.pid`
