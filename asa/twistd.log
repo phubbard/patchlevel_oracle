@@ -1,0 +1,11 @@
+2011-04-13 12:43:07-0700 [-] Log opened.
+2011-04-13 12:43:07-0700 [-] twistd 10.2.0 (/home/buildbot-runner/.virtualenvs/buildbot/bin/python 2.6.2) starting up.
+2011-04-13 12:43:07-0700 [-] reactor class: twisted.internet.selectreactor.SelectReactor.
+2011-04-13 12:43:07-0700 [-] twisted.web.server.Site starting on 8091
+2011-04-13 12:43:07-0700 [-] Starting factory <twisted.web.server.Site instance at 0x2bce878>
+2011-04-13 12:43:23-0700 [HTTPChannel,0,137.110.112.110] 137.110.112.110 - - [13/Apr/2011:19:43:22 +0000] "GET / HTTP/1.1" 200 2460 "-" "Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10.6; en-US; rv:1.9.2.15) Gecko/20110303 Firefox/3.6.15"
+2011-04-13 12:43:23-0700 [HTTPChannel,0,137.110.112.110] 137.110.112.110 - - [13/Apr/2011:19:43:22 +0000] "GET /favicon.ico HTTP/1.1" 200 - "-" "Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10.6; en-US; rv:1.9.2.15) Gecko/20110303 Firefox/3.6.15"
+2011-04-13 12:43:26-0700 [HTTPChannel,0,137.110.112.110] 137.110.112.110 - - [13/Apr/2011:19:43:25 +0000] "GET /favicon.ico HTTP/1.1" 200 - "-" "Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10.6; en-US; rv:1.9.2.15) Gecko/20110303 Firefox/3.6.15"
+2011-04-13 12:44:14-0700 [HTTPChannel,1,137.110.112.110] 137.110.112.110 - - [13/Apr/2011:19:44:13 +0000] "GET / HTTP/1.1" 200 2460 "-" "Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10.6; en-US; rv:1.9.2.15) Gecko/20110303 Firefox/3.6.15"
+2011-04-13 12:44:14-0700 [HTTPChannel,1,137.110.112.110] 137.110.112.110 - - [13/Apr/2011:19:44:13 +0000] "GET /favicon.ico HTTP/1.1" 200 - "-" "Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10.6; en-US; rv:1.9.2.15) Gecko/20110303 Firefox/3.6.15"
+2011-04-13 12:44:17-0700 [HTTPChannel,1,137.110.112.110] 137.110.112.110 - - [13/Apr/2011:19:44:16 +0000] "GET /favicon.ico HTTP/1.1" 200 - "-" "Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10.6; en-US; rv:1.9.2.15) Gecko/20110303 Firefox/3.6.15"
